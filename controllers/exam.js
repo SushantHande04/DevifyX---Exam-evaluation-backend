@@ -1,5 +1,5 @@
-import { isExaminer, isAuthenticated, isStudent } from "../middlewares/auth";
-import { examModel } from "../models/exam";
+import { examModel } from "../models/exam.js";
+import { questionModel } from "../models/question.js";
 
 export const createExam = async (req, res) => {
     try{
@@ -118,5 +118,40 @@ export const deleteExam = async (req, res) => {
     }catch(err) {
         console.log("exam deletion : ", err);
         req.json({status: false, message: "Failed to delete exam"});
+    }
+}
+
+export const getQuestions = async (req, res) => {
+    try{
+        const questions = await questionModel.find({exam: examId}); 
+
+        res.json({status: true, questions});
+    }catch (err) {
+        console.log(err);
+        res.json({status: false, message: "Failed to get questions"});
+    }
+}
+
+export const createQuestion = async (req, res) => {
+    try{
+        const {
+            questionType,
+            content,
+            options,
+            correctAnswer
+        } = req.body;
+
+        // assuming options = [] if question is not MCQ 
+        const newQuestion = await questionModel.create({
+            questionType,
+            content,
+            options,
+            correctAnswer
+        });
+
+        req.json({status: true, message: "Question cretaed successfully"});
+    } catch(err) {
+        console.log("question creation : ", err);
+        req.json({status: false, message: "Failed to add new question"});
     }
 }

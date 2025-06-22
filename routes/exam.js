@@ -1,6 +1,6 @@
 import {Router} from "express";
-import { assignExam, createExam, deleteExam, getAllExams, getAssignedExams, getExam, updateExamDetails} from "../controllers/exam";
-import { isAuthenticated, isExaminer, isStudent } from "../middlewares/auth";
+import { assignExam, createExam, createQuestion, deleteExam, getAllExams, getAssignedExams, getExam, getQuestions, updateExamDetails} from "../controllers/exam.js";
+import { isAuthenticated, isExaminer, isStudent } from "../middlewares/auth.js";
 
 const router = Router();
 
@@ -24,5 +24,12 @@ router.post("/:id/assign", isAuthenticated, isExaminer, assignExam);
 
 // delete exam -> delete corresponding questions from questions collection 
 router.delete("/:id", isAuthenticated, isExaminer, deleteExam);
+
+// get all questions for an exam 
+router.get("/:examId/questions", isAuthenticated, isExaminer, getQuestions);
+
+// add a new question 
+router.post("/:examId/questions", isAuthenticated, isExaminer, createQuestion);
+
 
 export {router};

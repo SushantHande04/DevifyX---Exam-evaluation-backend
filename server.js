@@ -41,8 +41,17 @@ const docOptions = {
                 url: "http://localhost:3000"
             }
         ],
+        components: {
+            securitySchemes: {
+                cookieAuth: {
+                type: "apiKey",
+                in: "cookie",
+                name: "authToken"
+                }
+            }
+        }
     },
-    apis: ["./routes/*.js"], 
+    apis: ["./apidocs/*.js"], 
 };
 const specs = swaggerJSDoc(docOptions);
 app.use(

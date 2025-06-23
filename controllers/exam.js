@@ -1,5 +1,6 @@
 import { examModel } from "../models/exam.js";
 import { questionModel } from "../models/question.js";
+import { userModel } from "../models/user.js";
 
 export const createExam = async (req, res) => {
     try{
@@ -14,10 +15,10 @@ export const createExam = async (req, res) => {
             createdBy: req.user
         });
 
-        req.json({status: true, message: "Exam cretaed successfully"});
+        res.json({status: true, message: "Exam cretaed successfully"});
     } catch(err) {
         console.log("exam creation : ", err);
-        req.json({status: false, message: "Exam creation failed"});
+        res.json({status: false, message: "Exam creation failed"});
     }
 }
 
@@ -34,12 +35,12 @@ export const getAllExams = async (req, res) => {
 
 export const getAssignedExams = async (req, res) => {
     try{
-        const exams = await examModel.find({ assignedTo: studentId });
+        const exams = await examModel.find({ assignedTo: req.user._id });
 
         res.json({status: true, exams});
     }catch (err) {
         console.log(err);
-        res.json({status: false, message: "Failed to get all exams"});
+        res.json({status: false, message: "Failed to get assigned exams"});
     }
 }
 
@@ -68,10 +69,10 @@ export const updateExamDetails = async (req, res) => {
             description
         });
 
-        req.json({status: true, message: "Exam details updated successfully"});
+        res.json({status: true, message: "Exam details updated successfully"});
     } catch(err) {
         console.log("exam updation : ", err);
-        req.json({status: false, message: "Failed to update exam details"});
+        res.json({status: false, message: "Failed to update exam details"});
     }
 }
 
@@ -81,7 +82,7 @@ export const assignExam = async (req, res) => {
         const examId = req.params.id;
 
         const students = await userModel.find({
-            username: { $in: usernames }
+            username: { $in: assignTo }
         });
 
         if (students.length === 0) {
@@ -102,10 +103,10 @@ export const assignExam = async (req, res) => {
         );
         
 
-        req.json({status: true, message: "Exam assigned to selected students"});
+        res.json({status: true, message: "Exam assigned to selected students"});
     } catch(err) {
         console.log("exam updation : ", err);
-        req.json({status: false, message: "Failed assign exam"});
+        res.json({status: false, message: "Failed assign exam"});
     }
 }
 
@@ -117,7 +118,7 @@ export const deleteExam = async (req, res) => {
         res.json({status: true, message: `Exam "${deletedExam.title}" deleted successfully`});
     }catch(err) {
         console.log("exam deletion : ", err);
-        req.json({status: false, message: "Failed to delete exam"});
+        res.json({status: false, message: "Failed to delete exam"});
     }
 }
 
@@ -134,6 +135,7 @@ export const getQuestions = async (req, res) => {
 
 export const createQuestion = async (req, res) => {
     try{
+        const {examId} = req.params;
         const {
             questionType,
             content,
@@ -143,15 +145,21 @@ export const createQuestion = async (req, res) => {
 
         // assuming options = [] if question is not MCQ 
         const newQuestion = await questionModel.create({
+            exam: examId,
             questionType,
             content,
             options,
             correctAnswer
         });
 
-        req.json({status: true, message: "Question cretaed successfully"});
+        // update exam document 
+        await examModel.updateOne({_id: examId}, {
+            $push: {questions: newQuestion._id}
+        })
+
+        res.json({status: true, message: "Question cretaed successfully"});
     } catch(err) {
         console.log("question creation : ", err);
-        req.json({status: false, message: "Failed to add new question"});
+        res.json({status: false, message: "Failed to add new question"});
     }
 }

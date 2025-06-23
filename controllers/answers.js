@@ -7,32 +7,39 @@ export const submitAllAnswers = async (req, res) => {
         const answers = allAnswers.map((ans) => ({
             exam: examId,
             question: ans.questionId,
-            student: ans.answerdBy,
+            student: ans.answeredBy,
             answer: ans.content, // it can be MCQ option, array of options, string 
-            isAutoGraded: (ans.type == "MCQ" ? true : false),
+            isAutoGraded: ans.isAutoGraded,
             score: 0,
             feedback: ""
         }));
+
         // saving answers first to prevent loss 
-        const allanswers = await answerModel.insertMany(answers); 
+        await answerModel.insertMany(answers); 
 
         // autoGrading logic 
-        const evaluatedAnswers = [];
-        const mcqAnswers = await answerModel.find({exam: examId, isAutograded: true}).populate("question");
-    
-        // filter questions which are MCQ based 
-        const mcqQuestions = answers.filter((a) => (
-            a.question.type == "MCQ" ? a.question : null
-        ));
-        
+        let evaluatedAnswers = [];
+        const mcqAnswers = await answerModel.find({exam: examId, isAutoGraded: true}).populate("question");
+        console.log("MCQ answers : ",mcqAnswers);
+
         // grade ans based on the alloted marks and correctness 
-        for(i = 0 ; i < mcqAnswers.length; i++) {
-            if(mcqAnswers[i].answer === mcqQuestions[i].correctAnswer) {
-                mcqAnswers[i].score = mcqQuestions[i].marks
+        for(let i = 0 ; i < mcqAnswers.length; i++) {
+            if(mcqAnswers[i].answer === mcqAnswers[i].question.correctAnswer) {
+                mcqAnswers[i].score = mcqAnswers[i].question.marks
                 evaluatedAnswers.push(mcqAnswers[i]);
             }
         }
-
+        
+        evaluatedAnswers = evaluatedAnswers.filter((eans) => ({
+            exam: eans.exam,
+            question: eans.question._id,
+            student: eans.student,
+            answer: eans.answer,
+            isAutoGraded: eans.isAutoGraded,
+            score: eans.score,
+            feedback: eans.feedback
+        }));
+        console.log(evaluatedAnswers);
         const bulkOperations = evaluatedAnswers.map((a) => ({
             updateOne: {
                 filter: {_id: a._id},

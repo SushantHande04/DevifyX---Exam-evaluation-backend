@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import {userModel} from "../models/user.js";
 
 export function isAuthenticated(req, res, next) {
     try{
@@ -17,6 +18,7 @@ export function isAuthenticated(req, res, next) {
 
 export async function isExaminer(req, res, next) {
     try{
+        console.log(req.user);
         const examiner = await userModel.findOne({_id: req.user._id});
         
         if(examiner.role != "examiner") {
@@ -31,6 +33,7 @@ export async function isExaminer(req, res, next) {
 
 export async function isStudent(req, res, next) {
     try{
+        
         const student = await userModel.findOne({_id: req.user._id});
         
         if(student.role != "student") {

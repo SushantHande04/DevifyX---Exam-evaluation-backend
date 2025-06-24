@@ -30,7 +30,8 @@ export const submitAllAnswers = async (req, res) => {
             }
         }
         
-        evaluatedAnswers = evaluatedAnswers.filter((eans) => ({
+        evaluatedAnswers = evaluatedAnswers.map((eans) => ({
+            _id: eans._id,
             exam: eans.exam,
             question: eans.question._id,
             student: eans.student,
@@ -43,7 +44,7 @@ export const submitAllAnswers = async (req, res) => {
         const bulkOperations = evaluatedAnswers.map((a) => ({
             updateOne: {
                 filter: {_id: a._id},
-                update: {score: a.score}
+                update: {$set: { score: a.score }}
             }
         }));
 
@@ -101,7 +102,7 @@ export const gradeAnswer = async (req, res) => {
     try{
         const {score, feedback} = req.body;
         const {answerId} = req.params;
-        const answer = await answerModel.findByIdAndUpdate(answerId, {
+        const answer = await answerModel.updateOne({_id: answerId}, {
             score,
             feedback
         });

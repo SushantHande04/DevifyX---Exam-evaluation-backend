@@ -140,7 +140,8 @@ export const createQuestion = async (req, res) => {
             questionType,
             content,
             options,
-            correctAnswer
+            correctAnswer,
+            marks
         } = req.body;
 
         // assuming options = [] if question is not MCQ 
@@ -149,7 +150,8 @@ export const createQuestion = async (req, res) => {
             questionType,
             content,
             options,
-            correctAnswer
+            correctAnswer,
+            marks
         });
 
         // update exam document 
